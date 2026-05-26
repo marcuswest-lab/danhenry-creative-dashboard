@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dan Henry Creative Performance Dashboard &mdash; All Time</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0C0F14;color:#E2E8F0;font-family:'DM Sans',sans-serif;padding:24px 24px 48px}
+.wrap{max-width:1700px;margin:0 auto}
+h1{font-size:28px;font-weight:700;color:#F8FAFC;text-align:center;margin-bottom:4px}
+.subtitle{font-size:14px;color:#94A3B8;text-align:center;margin-bottom:16px}
+.legend{display:flex;justify-content:center;gap:24px;font-size:12px;color:#94A3B8;margin-bottom:20px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:6px}
+.dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.dot-g{background:#34D399}.dot-y{background:#FBBF24}.dot-r{background:#F87171}.dot-gr{background:#475569}
+.controls{display:flex;gap:10px;margin-bottom:14px;align-items:center;flex-wrap:wrap}
+.search{width:280px;padding:8px 12px;background:#151922;border:1px solid #334155;border-radius:8px;color:#E2E8F0;font-size:13px;font-family:'DM Sans',sans-serif}
+.search::placeholder{color:#64748B}
+.search:focus{outline:none;border-color:#3B82F6}
+.fbtn{padding:6px 14px;border-radius:8px;border:1px solid #334155;background:transparent;color:#94A3B8;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
+.fbtn:hover{color:#CBD5E1;border-color:#475569}
+.fbtn.active{background:#334155;color:#E2E8F0;border-color:#475569}
+.tab-bar{display:flex;width:fit-content;background:#151922;border-radius:10px;border:1px solid #1E293B;margin-bottom:16px;overflow:hidden}
+.tab{padding:10px 20px;cursor:pointer;color:#64748B;font-size:13px;font-weight:500;border-right:1px solid #1E293B;transition:all .15s;white-space:nowrap;user-select:none}
+.tab:last-child{border-right:none}
+.tab:hover{color:#CBD5E1}
+.tab.active{background:#3B82F6;color:#fff}
+.tab .cnt{opacity:.6;font-size:11px}
+.tbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid #1E293B;max-height:calc(100vh - 280px);overflow-y:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{position:sticky;top:0;background:#151922;color:#94A3B8;font-weight:600;padding:10px;text-align:left;border-bottom:1px solid #1E293B;white-space:nowrap;cursor:pointer;user-select:none;z-index:10;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+thead th:hover{color:#CBD5E1}
+thead th .arr{font-size:10px;margin-left:3px;opacity:.4}
+thead th.sorted .arr{opacity:1;color:#3B82F6}
+thead th.group-mdw{color:#60A5FA}
+thead th.group-pb{color:#A78BFA}
+thead th.group-dfy{color:#F472B6}
+thead th.group-epm{color:#FB923C}
+tbody td{padding:8px 10px;border-bottom:1px solid #1E293B;white-space:nowrap;font-family:'JetBrains Mono',monospace;font-size:11px;color:#CBD5E1}
+tbody tr:hover td{background:#1a1f2e}
+.col-idx{position:sticky;left:0;z-index:5;background:#0C0F14;min-width:36px;text-align:center;color:#475569;font-size:11px}
+.col-name{position:sticky;left:36px;z-index:5;background:#0C0F14;min-width:380px;max-width:440px;overflow:hidden;text-overflow:ellipsis;font-family:'DM Sans',sans-serif;font-weight:500;color:#F8FAFC;font-size:12px}
+thead .col-idx{z-index:11;background:#151922}
+thead .col-name{z-index:11;background:#151922}
+tbody tr:hover .col-idx,tbody tr:hover .col-name{background:#1a1f2e}
+.nd{color:#475569}
+.wk{background:rgba(52,211,153,.15);color:#34D399;padding:3px 8px;border-radius:6px;font-weight:500}
+.of{background:rgba(251,191,36,.15);color:#FBBF24;padding:3px 8px;border-radius:6px;font-weight:500}
+.ak{background:rgba(248,113,113,.15);color:#F87171;padding:3px 8px;border-radius:6px;font-weight:500}
+.view-link{color:#60A5FA;text-decoration:none;font-family:'DM Sans',sans-serif;font-size:11px;display:inline-flex;align-items:center;gap:3px}
+.view-link:hover{color:#93C5FD}
+.view-link svg{width:11px;height:11px}
+.row-count{text-align:right;color:#475569;font-size:12px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Dan Henry Creative Performance Dashboard</h1>
+<div class="subtitle">All-Time Performance &mdash; All Funnels (MDW &middot; PB Webinar/PBI &middot; DFY &middot; EPM) &mdash; Generated May 25, 2026</div>
+<div class="legend" id="legend"></div>
+<div class="controls">
+<input class="search" id="search" placeholder="Search creatives..." type="text">
+<button class="fbtn" id="btnWinners" onclick="toggleFilter('winners')">Winners (ROAS &ge; 2.0)</button>
+<button class="fbtn" id="btnSpend" onclick="toggleFilter('spend')">Min $500 Spend</button>
+</div>
+<div class="tab-bar" id="tabBar"></div>
+<div class="tbl-wrap"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
+<div class="row-count" id="rowCount"></div>
+</div>
+<script>
+const DATA={"statics": [{"name": "MDW - Script Transformation - Problem-Solution Lead - CIDKVZ6409", "cost": 2231.82, "revenue": 707.0, "roas": 0.3167818193223468, "pbReg": 0.0, "pbAtt": 0.0, "pbiSales": 0.0, "pbiRev": 0.0, "mdwSales": 5.0, "mdwAtt": 1.0, "mdwApp": 1.0, "mdwRev": 485.0, "dfySales": 0.0, "dfyRev": 0.0, "epmSales": 0.0, "epmRev": 0.0, "cpPbReg": null, "cpPbAtt": null, "cpMdwAtt": 2231.82, "cpMdwApp": 2231.82, "cpMdwSale": 446.36400000000003, "cpPbiSale": null, "ctrAll": 2.681726400807673, "ctrLink": 1.583796062594649, "cpm": 140.826602725896, "impressions": 15848.0, "link": "https://www.facebook.com/?feed_demo_ad=120244146318020177\u0026h=AQLPqJy2bPextG6XSQaYb28UMqE"}, {"name": "MDW - Script Transformation - Proclamation Lead - CIDUF2481T", "cost": 198.94, "revenue": 0.0, "roas": 0.0, "pbReg": 0.0, "pbAtt": 0.0, "pbiSales": 0.0, "pbiRev": 0.0, "mdwSales": 0.0, "mdwAtt": 0.0, "mdwApp": 0.0, "mdwRev": 0.0, "dfySales": 0.0, "dfyRev": 0.0, "epmSales": 0.0, "epmRev": 0.0, "cpPbReg": null, "cpPbAtt": null, "cpMdwAtt": null, "cpMdwApp": null, "cpMdwSale": null, "cpPbiSale": null, "ctrAll": 2.663438256658596, "ctrLink": 1.8159806295399514, "cpm": 120.42372881355932, "impressions": 1652.0, "link": "https://www.facebook.com/?feed_demo_ad=120244146317970177\u0026h=AQL1mqzHGAv8-KYYhTjBLKvOzCw"}, {"name": "MDW - Script Transformation - Story Lead - CID8ACP3DB", "cost": 146.14, "revenue": 0.0, "roas": 0.0, "pbReg": 0.0, "pbAtt": 0.0, "pbiSales": 0.0, "pbiRev": 0.0, "mdwSales": 0.0, "mdwAtt": 0.0, "mdwApp": 0.0, "mdwRev": 0.0, "dfySales": 0.0, "dfyRev": 0.0, "epmSales": 0.0, "epmRev": 0.0, "cpPbReg": null, "cpPbAtt": null, "cpMdwAtt": null, "cpMdwApp": null, "cpMdwSale": null, "cpPbiSale": null, "ctrAll": 2.2803487592219986, "ctrLink": 1.1401743796109993, "cpm": 98.01475519785379, "impressions": 1491.0, "link": "https://www.facebook.com/?feed_demo_ad=120244146318010177\u0026h=AQIjIDknVFe-GAZVgj1qJgof28Y"}, {"name": "MDW - Script Transformation - Secret Lead - CIDEYGZ2EG", "cost": 85.54, "revenue": 0.0, "roas": 0.0, "pbReg": 0.0, "pbAtt": 0.0, "pbiSales": 0.0, "pbiRev": 0.0, "mdwSales": 0.0, "mdwAtt": 0.0, "mdwApp": 0.0, "mdwRev": 0.0, "dfySales": 0.0, "dfyRev": 0.0, "epmSales": 0.0, "epmRev": 0.0, "cpPbReg": null, "cpPbAtt": null, "cpMdwAtt": null, "cpMdwApp": null, "cpMdwSale": null, "cpPbiSale": null, "ctrAll": 1.5151515151515151, "ctrLink": 0.7575757575757576, "cpm": 108.0050505050505, "impressions": 792.0, "link": "https://www.facebook.com/?feed_demo_ad=120244146318090177\u0026h=AQK38u0-kvA64Y-W3hyWOjaJZ5s"}, {"name": "MDW - Webinar Diagnosis - Proclamation Lead - CIDEIHX31G", "cost": 82.2, "revenue": 2477.0, "roas": 30.1338199513382, "pbReg": 1.0, "pbAtt": 1.0, "pbiSales": 1.0, "pbiRev": 1997.0, "mdwSales": 2.0, "mdwAtt": 1.0, "mdwApp": 0.0, "mdwRev": 194.0, "dfySales": 0.0, "dfyRev": 0.0, "epmSales": 0.0, "epmRev": 0.0, "cpPbReg": 82.2, "cpPbAtt": 82.2, "cpMdwAtt": 82.2, "cpMdwApp": null, "cpMdwSale": 41.1, "cpPbiSale": 82.2, "ctrAll": 3.386454183266932, "ctrLink": 2.1912350597609564, "cpm": 163.74501992031873, "impressions": 502.0, "link": "https://www.facebook.com/?feed_demo_ad=120244146317990177\u0026h=AQIE2aps3XnHE-wr4PzX9Hn0R5c"}, {"name": "MDW - Script Transformation - Promise Lead - CID1F1PRVI", "cost": 69.63, "revenue": 97.0, "roas": 1.393077696395232, "pbReg": 0.0, "pbAtt": 0.0, "pbiSales": 0.0, "pbiRev": 0.0, "mdwSales": 1.0, "mdwAtt": 1.0, "mdwApp": 0.0, "mdwRev": 97.0, "dfySales": 0.0, "dfyRev": 0.0, "epmSales": 0.0, "epmRev": 0.0, "cpPbReg": null, "cpPbAtt": null, "cpMdwAtt": 69.63, "cpMdwApp": null, "cpMdwSale": 69.63, "cpPbiSale": null, "ctrAll": 2.216427640156454, "ctrLink": 1.694915254237288, "cpm": 90.78226857887874, "impressions": 767.0, "link": "https://www.facebook.com/?feed_demo_ad=120244146318000177\u0026h=AQIqW7oGZEyB3Q6X9ONkkzqsJUs"}, {"name": "MDW - Webinar Diagnosis - Story Lead - CIDJRNQ2CE", "cost": 51.13, "revenue": 0.0, "roas": 0.0, "pbReg": 0.0, "pbAtt": 0.0, "pbiSales": 0.0, "pbiRev": 0.0, "mdwSales": 0.0, "mdwAtt": 0.0, "mdwApp": 0.0, "mdwRev": 0.0, "dfySales": 0.0, "dfyRev": 0.0, "epmSales": 0.0, "epmRev": 0.0, "cpPbReg": null, "cpPbAtt": null, "cpMdwAtt": null, "cpMdwApp": null, "cpMdwSale": null, "cpPbiSale": null, "ctrAll": 2.4456521739130435, "ctrLink": 1.9021739130434785, "cpm": 138.94021739130434, "impressions": 368.0, "link": "https://www.facebook.com/?feed_demo_ad=120244146318040177\u0026h=AQKdLMpj1CZjpWvZ7zKAr9M6NtE"}, {"name": "MDW - Webinar Diagnosis - Problem-Solution Lead 2 - CIDI06JA9I", "cost": 41.39, "revenue": 0.0, "roas": 0.0, "pbReg": 0.0, "pbAtt": 0.0, "pbiSales": 0.0, "pbiRev": 0.0, "mdwSales": 0.0, "mdwAtt": 0.0, "mdwApp": 0.0, "mdwRev": 0.0, "dfySales": 0.0, "dfyRev": 0.0, "epmSales": 0.0, "epmRev": 0.0, "cpPbReg": null, "cpPbAtt": null, "cpMdwAtt": null, "cpMdwApp": null, "cpMdwSale": null, "cpPbiSale": null, "ctrAll": 2.903225806451613, "ctrLink": 0.967741935483871, "cpm": 133.51612903225808, "impressions": 310.0, "link": "https://www.facebook.com/?feed_demo_ad=120244146318030177\u0026h=AQIrFbKC7BiTp3C0ke0TFV5AFgI"}, {"name": "MDW - Webinar Diagnosis - Secret Lead - CIDAJFMYMJ", "cost": 38.26, "revenue": 97.0, "roas": 2.5352848928384737, "pbReg": 0.0, "pbAtt": 0.0, "pbiSales": 0.0, "pbiRev": 0.0, "mdwSales": 1.0, "mdwAtt": 1.0, "mdwApp": 0.0, "mdwRev": 97.0, "dfySales": 0.0, "dfyRev": 0.0, "epmSales": 0.0, "epmRev": 0.0, "cpPbReg": null, "cpPbAtt": null, "cpMdwAtt": 38.26, "cpMdwApp": null, "cpMdwSale": 38.26, "cpPbiSale": null, "ctrAll": 3.717472118959108, "ctrLink": 2.973977695167286, "cpm": 142.23048327137548, "impressions": 269.0, "link": "https://www.facebook.com/?feed_demo_ad=120244146317980177\u0026h=AQJVCOvJLy3XG3PcgY5q5jgrctk"}, {"name": "MDW - Webinar Diagnosis - Problem-Solution Lead 1 - CIDVOKAGRF", "cost": 20.22, "revenue": 0.0, "roas": 0.0, "pbReg": 0.0, "pbAtt": 0.0, "pbiSales": 0.0, "pbiRev": 0.0, "mdwSales": 0.0, "mdwAtt": 0.0, "mdwApp": 0.0, "mdwRev": 0.0, "dfySales": 0.0, "dfyRev": 0.0, "epmSales": 0.0, "epmRev": 0.0, "cpPbReg": null, "cpPbAtt": null, "cpMdwAtt": null, "cpMdwApp": null, "cpMdwSale": null, "cpPbiSale": null, "ctrAll": 0.7326007326007326, "ctrLink": 0.7326007326007326, "cpm": 74.06593406593407, "impressions": 273.0, "link": "https://www.facebook.com/?feed_demo_ad=120244146318060177\u0026h=AQKzcwmGNoNaiUADd4bUCG3QJ2o"}], "videos": [{"name": "MDW - Webinar Diagnosis - Promise Lead - CID1IJPZRT", "cost": 2809.73, "revenue": 3212.0, "roas": 1.1431703402106252, "pbReg": 2.0, "pbAtt": 2.0, "pbiSales": 0.0, "pbiRev": 0.0, "mdwSales": 15.0, "mdwAtt": 9.0, "mdwApp": 0.0, "mdwRev": 1455.0, "dfySales": 0.0, "dfyRev": 0.0, "epmSales": 0.0, "epmRev": 0.0, "cpPbReg": 1404.865, "cpPbAtt": 1404.865, "cpMdwAtt": 312.1922222222222, "cpMdwApp": null, "cpMdwSale": 187.31533333333334, "cpPbiSale": null, "hookRate": 27.55420009281973, "holdRate": 34.55245428296439, "ctrAll": 4.926075714380429, "ctrLink": 3.036531194059537, "cpm": 186.28455877477955, "impressions": 15083.0, "link": "https://www.facebook.com/?feed_demo_ad=120244042789430177\u0026h=AQKq2wcSSUggqdm9Il3SOeAMt9s"}, {"name": "MDW - Webinar Diagnosis - Proclamation Lead - CIDGS8XENP", "cost": 305.89000000000004, "revenue": 0.0, "roas": 0.0, "pbReg": 0.0, "pbAtt": 0.0, "pbiSales": 0.0, "pbiRev": 0.0, "mdwSales": 0.0, "mdwAtt": 0.0, "mdwApp": 0.0, "mdwRev": 0.0, "dfySales": 0.0, "dfyRev": 0.0, "epmSales": 0.0, "epmRev": 0.0, "cpPbReg": null, "cpPbAtt": null, "cpMdwAtt": null, "cpMdwApp": null, "cpMdwSale": null, "cpPbiSale": null, "hookRate": 23.678861788617887, "holdRate": 31.97424892703863, "ctrAll": 5.233739837398374, "ctrLink": 3.50609756097561, "cpm": 155.43191056910572, "impressions": 1968.0, "link": "https://www.facebook.com/?feed_demo_ad=120244042782190177\u0026h=AQJRhQWsHbb4uq-r8RDqUOb-fQU"}, {"name": "MDW - Expert Access Authority - Promise Lead - CIDDUY6U0W", "cost": 148.42, "revenue": 97.0, "roas": 0.6535507344023717, "pbReg": 0.0, "pbAtt": 0.0, "pbiSales": 0.0, "pbiRev": 0.0, "mdwSales": 1.0, "mdwAtt": 0.0, "mdwApp": 0.0, "mdwRev": 97.0, "dfySales": 0.0, "dfyRev": 0.0, "epmSales": 0.0, "epmRev": 0.0, "cpPbReg": null, "cpPbAtt": null, "cpMdwAtt": null, "cpMdwApp": null, "cpMdwSale": 148.42, "cpPbiSale": null, "hookRate": 24.341580207501995, "holdRate": 29.508196721311474, "ctrAll": 5.107741420590583, "ctrLink": 3.0327214684756583, "cpm": 118.45171588188347, "impressions": 1253.0, "link": "https://www.facebook.com/?feed_demo_ad=120244043892330177\u0026h=AQLg5wwzNyUVR8_uRaQHEfhuQHE"}, {"name": "MDW - Webinar Diagnosis - Problem-Solution Lead - CIDOU0LLDG", "cost": 103.57, "revenue": 0.0, "roas": 0.0, "pbReg": 0.0, "pbAtt": 0.0, "pbiSales": 0.0, "pbiRev": 0.0, "mdwSales": 0.0, "mdwAtt": 0.0, "mdwApp": 0.0, "mdwRev": 0.0, "dfySales": 0.0, "dfyRev": 0.0, "epmSales": 0.0, "epmRev": 0.0, "cpPbReg": null, "cpPbAtt": null, "cpMdwAtt": null, "cpMdwApp": null, "cpMdwSale": null, "cpPbiSale": null, "hookRate": 21.059431524547804, "holdRate": 26.380368098159508, "ctrAll": 4.1343669250646, "ctrLink": 2.454780361757106, "cpm": 133.8113695090439, "impressions": 774.0, "link": "https://www.facebook.com/?feed_demo_ad=120244042781040177\u0026h=AQLPgkVdB0QZNLj7dt89oCl3dY4"}, {"name": "MDW - Webinar Diagnosis - Story Lead - CIDSFEEIKB", "cost": 39.230000000000004, "revenue": 0.0, "roas": 0.0, "pbReg": 0.0, "pbAtt": 0.0, "pbiSales": 0.0, "pbiRev": 0.0, "mdwSales": 0.0, "mdwAtt": 0.0, "mdwApp": 0.0, "mdwRev": 0.0, "dfySales": 0.0, "dfyRev": 0.0, "epmSales": 0.0, "epmRev": 0.0, "cpPbReg": null, "cpPbAtt": null, "cpMdwAtt": null, "cpMdwApp": null, "cpMdwSale": null, "cpPbiSale": null, "hookRate": 22.92490118577075, "holdRate": 43.103448275862064, "ctrAll": 3.557312252964427, "ctrLink": 1.9762845849802373, "cpm": 155.05928853754943, "impressions": 253.0, "link": "https://www.facebook.com/?feed_demo_ad=120244042789440177\u0026h=AQJQdOFo9_ywTHq76Xh4-sAIEw8"}, {"name": "MDW - Webinar Diagnosis - Secret Lead - CID2RDQ7Y4", "cost": 20.0, "revenue": 0.0, "roas": 0.0, "pbReg": 0.0, "pbAtt": 0.0, "pbiSales": 0.0, "pbiRev": 0.0, "mdwSales": 0.0, "mdwAtt": 0.0, "mdwApp": 0.0, "mdwRev": 0.0, "dfySales": 0.0, "dfyRev": 0.0, "epmSales": 0.0, "epmRev": 0.0, "cpPbReg": null, "cpPbAtt": null, "cpMdwAtt": null, "cpMdwApp": null, "cpMdwSale": null, "cpPbiSale": null, "hookRate": 22.69503546099291, "holdRate": 31.25, "ctrAll": 3.546099290780142, "ctrLink": 2.8368794326241136, "cpm": 141.84397163120568, "impressions": 141.0, "link": "https://www.facebook.com/?feed_demo_ad=120244042789420177\u0026h=AQKjyQSFYIPz3v8vUAB_SNHWyTE"}], "copy": [{"name": "MDW - Webinar Diagnosis", "cost": 6639.569999999999, "revenue": 6784.0, "roas": 1.0217529147218873, "pbReg": 3.0, "pbAtt": 2213.1899999999996, "pbiSales": 1.0, "pbiRev": 6639.569999999999, "mdwSales": 26.0, "mdwAtt": 255.36807692307687, "mdwApp": 1.0, "mdwRev": 6639.569999999999, "dfySales": 0.0, "dfyRev": null, "epmSales": 0.0, "epmRev": null, "cpPbReg": 2213.1899999999996, "cpPbAtt": 3.0, "cpMdwAtt": 26.0, "cpMdwApp": 6639.569999999999, "cpMdwSale": 255.36807692307687, "cpPbiSale": 6639.569999999999, "ctrAll": 3.8095683268282423, "ctrLink": 2.3418327996821464, "cpm": 155.17727347091403, "impressions": 42787.0, "link": "https://www.facebook.com/?feed_demo_ad=120244042789430177\u0026h=AQKq2wcSSUggqdm9Il3SOeAMt9s"}, {"name": "MDW - Script Transformation", "cost": 3916.75, "revenue": 1095.0, "roas": 0.27956851981872727, "pbReg": 0.0, "pbAtt": null, "pbiSales": 0.0, "pbiRev": null, "mdwSales": 9.0, "mdwAtt": 435.19444444444446, "mdwApp": 1.0, "mdwRev": 3916.75, "dfySales": 0.0, "dfyRev": null, "epmSales": 0.0, "epmRev": null, "cpPbReg": null, "cpPbAtt": null, "cpMdwAtt": 9.0, "cpMdwApp": 3916.75, "cpMdwSale": 435.19444444444446, "cpPbiSale": null, "ctrAll": 3.54590895367171, "ctrLink": 2.0128149216679527, "cpm": 131.3948807407159, "impressions": 29809.0, "link": "https://www.facebook.com/?feed_demo_ad=120244146318020177\u0026h=AQLPqJy2bPextG6XSQaYb28UMqE"}]};
+const TABS=[
+ {key:'statics',label:'Static Ads',isVideo:false},
+ {key:'videos',label:'Video Ads',isVideo:true},
+ {key:'copy',label:'Copy',isVideo:false}
+];
+const KPI={
+ roas:{green:2.0,yellow:1.0},
+ hookRate:{green:20,yellow:15},
+ holdRate:{green:20,yellow:15}
+};
+let curTab=0,sortCol='cost',sortAsc=false,filters={winners:false,spend:false};
+function ccBadge(v,metric){
+ if(v==null)return'nd';
+ const k=KPI[metric];if(!k)return'nd';
+ // ROAS / Hook / Hold: higher is better
+ return v>=k.green?'wk':v>=k.yellow?'of':'ak';
+}
+function fmt$(v){if(v==null)return'<span class="nd">&mdash;</span>';return'$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fmtD(v){if(v==null)return'<span class="nd">&mdash;</span>';return'$'+Math.round(v).toLocaleString('en-US')}
+function fmtN(v){if(v==null)return'<span class="nd">&mdash;</span>';return Math.round(v).toLocaleString('en-US')}
+function fmtP(v){if(v==null)return'<span class="nd">&mdash;</span>';return v.toFixed(2)+'%'}
+function fmtX(v){if(v==null)return'<span class="nd">&mdash;</span>';return v.toFixed(2)+'x'}
+function fmtROAS(v){
+ if(v==null)return'<span class="nd">&mdash;</span>';
+ const cls=ccBadge(v,'roas');
+ return'<span class="'+cls+'">'+v.toFixed(2)+'x</span>';
+}
+function fmtHook(v,metric){
+ if(v==null)return'<span class="nd">&mdash;</span>';
+ const cls=ccBadge(v,metric);
+ return'<span class="'+cls+'">'+v.toFixed(1)+'%</span>';
+}
+function fmtLink(url){
+ if(!url)return'<span class="nd">&mdash;</span>';
+ return'<a class="view-link" href="'+url.replace(/\u0026/g,'&')+'" target="_blank" rel="noopener">View <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 1h7v7M11 1L4.5 7.5"/></svg></a>';
+}
+function buildLegend(){
+ const t=TABS[curTab];
+ let h='';
+ h+='<div class="legend-item"><span class="dot dot-g"></span>ROAS &ge; 2.0x</div>';
+ h+='<div class="legend-item"><span class="dot dot-y"></span>ROAS 1.0&ndash;2.0x</div>';
+ h+='<div class="legend-item"><span class="dot dot-r"></span>ROAS &lt; 1.0x</div>';
+ if(t.isVideo){
+  h+='<div class="legend-item"><span class="dot dot-g"></span>Hook/Hold &ge; 20%</div>';
+  h+='<div class="legend-item"><span class="dot dot-y"></span>Hook/Hold 15&ndash;20%</div>';
+  h+='<div class="legend-item"><span class="dot dot-r"></span>Hook/Hold &lt; 15%</div>';
+ }
+ h+='<div class="legend-item"><span class="dot dot-gr"></span>No Data</div>';
+ document.getElementById('legend').innerHTML=h;
+}
+function buildTabs(){
+ let h='';
+ TABS.forEach((t,i)=>{
+  const n=(DATA[t.key]||[]).length;
+  h+='<div class="tab'+(i===curTab?' active':'')+'" onclick="switchTab('+i+')">'+t.label+' <span class="cnt">('+n+')</span></div>';
+ });
+ document.getElementById('tabBar').innerHTML=h;
+}
+function getCols(){
+ const t=TABS[curTab];
+ let cols=[
+  {key:'idx',label:'#',sortable:false,cls:'col-idx'},
+  {key:'name',label:'Name',sortable:true,cls:'col-name'},
+  {key:'link',label:'Ad',sortable:false},
+  {key:'cost',label:'Spend',sortable:true},
+  {key:'revenue',label:'Revenue',sortable:true},
+  {key:'roas',label:'ROAS',sortable:true,badge:'roas'},
+  // MDW funnel
+  {key:'mdwAtt',label:'MDW Att',sortable:true,grp:'mdw'},
+  {key:'cpMdwAtt',label:'$/MDW Att',sortable:true,grp:'mdw'},
+  {key:'mdwApp',label:'MDW App',sortable:true,grp:'mdw'},
+  {key:'cpMdwApp',label:'$/MDW App',sortable:true,grp:'mdw'},
+  {key:'mdwSales',label:'MDW Sale',sortable:true,grp:'mdw'},
+  {key:'mdwRev',label:'MDW Rev',sortable:true,grp:'mdw'},
+  // PB Webinar / PBI
+  {key:'pbReg',label:'PB Reg',sortable:true,grp:'pb'},
+  {key:'cpPbReg',label:'$/PB Reg',sortable:true,grp:'pb'},
+  {key:'pbAtt',label:'PB Att',sortable:true,grp:'pb'},
+  {key:'cpPbAtt',label:'$/PB Att',sortable:true,grp:'pb'},
+  {key:'pbiSales',label:'PBI Sale',sortable:true,grp:'pb'},
+  {key:'pbiRev',label:'PBI Rev',sortable:true,grp:'pb'},
+  // DFY
+  {key:'dfySales',label:'DFY Sale',sortable:true,grp:'dfy'},
+  {key:'dfyRev',label:'DFY Rev',sortable:true,grp:'dfy'},
+  // EPM
+  {key:'epmSales',label:'EPM Sale',sortable:true,grp:'epm'},
+  {key:'epmRev',label:'EPM Rev',sortable:true,grp:'epm'}
+ ];
+ if(t.isVideo){
+  cols.push({key:'hookRate',label:'Hook %',sortable:true,badge:'hookRate'});
+  cols.push({key:'holdRate',label:'Hold %',sortable:true,badge:'holdRate'});
+ }
+ cols.push(
+  {key:'ctrAll',label:'CTR (all)',sortable:true},
+  {key:'ctrLink',label:'CTR (link)',sortable:true},
+  {key:'cpm',label:'CPM',sortable:true},
+  {key:'impressions',label:'Impr',sortable:true}
+ );
+ return cols;
+}
+function renderTable(){
+ const t=TABS[curTab];
+ const cols=getCols();
+ const data=(DATA[t.key]||[]).slice();
+ const q=document.getElementById('search').value.toLowerCase();
+ let filtered=data.filter(r=>{
+  if(q&&!r.name.toLowerCase().includes(q))return false;
+  if(filters.spend&&(r.cost==null||r.cost<500))return false;
+  if(filters.winners&&(r.roas==null||r.roas<2.0))return false;
+  return true;
+ });
+ filtered.sort((a,b)=>{
+  let va=a[sortCol],vb=b[sortCol];
+  if(va==null&&vb==null)return 0;
+  if(va==null)return 1;
+  if(vb==null)return -1;
+  if(typeof va==='string')return sortAsc?va.localeCompare(vb):vb.localeCompare(va);
+  return sortAsc?va-vb:vb-va;
+ });
+ let th='<tr>';
+ cols.forEach(c=>{
+  const sorted=c.key===sortCol;
+  const arr=sorted?(sortAsc?'&#9650;':'&#9660;'):'&#9650;';
+  let cls=(c.cls||'')+(sorted?' sorted':'');
+  if(c.grp)cls+=' group-'+c.grp;
+  cls=cls.trim();
+  if(c.sortable)th+='<th class="'+cls+'" onclick="doSort(\''+c.key+'\')">'+c.label+'<span class="arr">'+arr+'</span></th>';
+  else th+='<th class="'+cls+'">'+c.label+'</th>';
+ });
+ th+='</tr>';
+ document.getElementById('thead').innerHTML=th;
+ let tb='';
+ filtered.forEach((r,i)=>{
+  tb+='<tr>';
+  cols.forEach(c=>{
+   const cls=c.cls||'';
+   if(c.key==='idx'){tb+='<td class="'+cls+'">'+(i+1)+'</td>';return;}
+   if(c.key==='name'){tb+='<td class="'+cls+'" title="'+(r.name||'').replace(/"/g,'&quot;')+'">'+(r.name||'')+'</td>';return;}
+   if(c.key==='link'){tb+='<td>'+fmtLink(r.link)+'</td>';return;}
+   if(c.key==='cost'||c.key==='revenue'||c.key==='mdwRev'||c.key==='pbiRev'||c.key==='dfyRev'||c.key==='epmRev'){tb+='<td>'+fmt$(r[c.key])+'</td>';return;}
+   if(c.key==='roas'){tb+='<td>'+fmtROAS(r.roas)+'</td>';return;}
+   if(c.badge==='hookRate'||c.badge==='holdRate'){tb+='<td>'+fmtHook(r[c.key],c.badge)+'</td>';return;}
+   if(c.key==='ctrAll'||c.key==='ctrLink'){tb+='<td>'+fmtP(r[c.key])+'</td>';return;}
+   if(c.key==='cpm'||c.key.startsWith('cp')){tb+='<td>'+fmtD(r[c.key])+'</td>';return;}
+   tb+='<td>'+fmtN(r[c.key])+'</td>';
+  });
+  tb+='</tr>';
+ });
+ document.getElementById('tbody').innerHTML=tb;
+ document.getElementById('rowCount').textContent=filtered.length+' of '+data.length+' creatives';
+}
+function switchTab(i){curTab=i;sortCol='cost';sortAsc=false;buildTabs();buildLegend();renderTable();}
+function doSort(col){if(sortCol===col)sortAsc=!sortAsc;else{sortCol=col;sortAsc=(col==='name');}renderTable();}
+function toggleFilter(f){filters[f]=!filters[f];document.getElementById(f==='winners'?'btnWinners':'btnSpend').classList.toggle('active');renderTable();}
+document.getElementById('search').addEventListener('input',renderTable);
+buildTabs();buildLegend();renderTable();
+</script>
+</body></html>
