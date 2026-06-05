@@ -228,4 +228,110 @@ function toggleFilter(f){filters[f]=!filters[f];document.getElementById(f==='win
 document.getElementById('search').addEventListener('input',renderTable);
 buildTabs();buildLegend();renderTable();
 </script>
+<!-- AWARENESS_OVERLAY_BEGIN -->
+<style id="awx-style">
+#awx-launch{position:fixed;top:14px;right:16px;z-index:9998;background:#1D4ED8;color:#fff;
+ border:1px solid #2563EB;border-radius:999px;padding:9px 16px;font-family:'DM Sans',sans-serif;
+ font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+#awx-launch:hover{background:#2563EB}
+#awx-overlay{position:fixed;inset:0;z-index:9999;background:rgba(6,8,12,.97);overflow-y:auto;
+ display:none;padding:28px 22px 60px;font-family:'DM Sans',sans-serif;color:#E2E8F0}
+#awx-overlay.open{display:block}
+.awx-wrap{max-width:1500px;margin:0 auto}
+.awx-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.awx-h1{font-size:24px;font-weight:700;color:#F8FAFC}
+.awx-close{background:#151922;border:1px solid #334155;color:#CBD5E1;border-radius:8px;
+ padding:7px 14px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.awx-close:hover{border-color:#475569;color:#fff}
+.awx-sub{font-size:13px;color:#94A3B8;margin-bottom:14px}
+.awx-banner{background:#1c1407;border:1px solid #6b4e10;color:#FBBF24;border-radius:8px;
+ padding:8px 12px;font-size:12px;margin-bottom:16px;line-height:1.5}
+.awx-toggles{display:flex;gap:20px;margin-bottom:16px;flex-wrap:wrap}
+.awx-tg{display:flex;gap:7px;align-items:center}
+.awx-lbl{font-size:11px;color:#64748B;text-transform:uppercase;letter-spacing:.05em;margin-right:3px}
+.awx-btn{padding:6px 14px;background:#151922;border:1px solid #334155;border-radius:8px;
+ color:#94A3B8;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.awx-btn:hover{color:#CBD5E1;border-color:#475569}
+.awx-btn.on{background:#1D4ED8;color:#fff;border-color:#2563EB}
+.awx-legend{font-size:12px;color:#64748B;margin-bottom:14px}
+.awx-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin:0 4px 0 10px;vertical-align:middle}
+.awx-g{background:#34D399}.awx-y{background:#FBBF24}.awx-r{background:#F87171}
+table.awx-tbl{width:100%;border-collapse:collapse;background:#151922;border-radius:12px;overflow:hidden}
+.awx-tbl th{background:#1E293B;color:#CBD5E1;font-size:11px;text-transform:uppercase;
+ letter-spacing:.03em;padding:10px 11px;text-align:right;font-weight:600;white-space:nowrap}
+.awx-tbl th:first-child{text-align:left}
+.awx-tbl td{padding:10px 11px;text-align:right;font-size:13px;border-top:1px solid #1E293B;
+ font-family:'JetBrains Mono','DM Sans',monospace;white-space:nowrap}
+.awx-tbl td:first-child{text-align:left;font-family:'DM Sans',sans-serif;font-weight:600;color:#F1F5F9}
+.awx-tbl tr:hover td{background:#1A1F2B}
+.awx-tg-green{color:#34D399}.awx-tg-yellow{color:#FBBF24}.awx-tg-red{color:#F87171}.awx-muted{color:#64748B}
+.awx-note{font-size:11px;color:#64748B;margin-top:12px;line-height:1.5}
+</style>
+
+<button id="awx-launch" onclick="awxOpen()">▦ Awareness / Lead Type</button>
+<div id="awx-overlay"><div class="awx-wrap">
+ <div class="awx-top"><div><div class="awx-h1" id="awx-title"></div>
+   <div class="awx-sub" id="awx-subtitle"></div></div>
+   <button class="awx-close" onclick="awxClose()">✕ Close</button></div>
+ <div class="awx-banner" id="awx-banner"></div>
+ <div class="awx-toggles">
+  <div class="awx-tg"><span class="awx-lbl">Dimension</span>
+   <button class="awx-btn on" data-d="awareness" onclick="awxSet('dim','awareness',this)">Awareness Level</button>
+   <button class="awx-btn" data-d="leadtype" onclick="awxSet('dim','leadtype',this)">Lead Type</button></div>
+  <div class="awx-tg"><span class="awx-lbl">Segment</span>
+   <button class="awx-btn on" data-s="All" onclick="awxSet('seg','All',this)">All</button>
+   <button class="awx-btn" data-s="Static" onclick="awxSet('seg','Static',this)">Static</button>
+   <button class="awx-btn" data-s="Video" onclick="awxSet('seg','Video',this)">Video</button></div>
+ </div>
+ <div class="awx-legend" id="awx-legend"></div>
+ <table class="awx-tbl"><thead id="awx-thead"></thead><tbody id="awx-tbody"></tbody></table>
+ <div class="awx-note" id="awx-note"></div>
+</div></div>
+<script>
+(function(){
+ var P={"name": "Dan Henry", "targets": "thresholds pending \u2014 numbers shown uncolored", "cols": [{"label": "Spend", "fmt": "money"}, {"label": "Revenue", "fmt": "money"}, {"label": "ROAS", "fmt": "x"}, {"label": "PB Reg", "fmt": "int"}, {"label": "Cost/Reg", "fmt": "money"}, {"label": "PB Att", "fmt": "int"}, {"label": "PBI Sales", "fmt": "int"}, {"label": "$/PBI", "fmt": "money"}, {"label": "MDW Sales", "fmt": "int"}, {"label": "$/MDW", "fmt": "money"}, {"label": "CTR", "fmt": "pct"}], "orders": {"awareness": ["Problem Aware", "Solution Aware", "Unclassified"], "leadtype": ["Promise", "Problem-Solution", "Proclamation", "Secret", "Story", "Unclassified"]}, "data": {"awareness": {"All": {"Solution Aware": {"Ads": 43, "Spend": 567.4, "Revenue": 144.0, "ROAS": 0.2538, "PB Reg": 0.0, "Cost/Reg": 0.0, "PB Att": 0.0, "PBI Sales": 0.0, "$/PBI": 0.0, "MDW Sales": 1.0, "$/MDW": 567.4, "CTR": 0.056}, "Problem Aware": {"Ads": 20, "Spend": 13302.61, "Revenue": 12654.0, "ROAS": 0.9512, "PB Reg": 3.0, "Cost/Reg": 4434.2033, "PB Att": 3.0, "PBI Sales": 1.0, "$/PBI": 13302.61, "MDW Sales": 48.0, "$/MDW": 277.1377, "CTR": 0.0351}, "Unclassified": {"Ads": 1, "Spend": 6.25, "Revenue": 0.0, "ROAS": 0.0, "PB Reg": 0.0, "Cost/Reg": 0.0, "PB Att": 0.0, "PBI Sales": 0.0, "$/PBI": 0.0, "MDW Sales": 0.0, "$/MDW": 0.0, "CTR": 0.0469}}, "Static": {"Solution Aware": {"Ads": 10, "Spend": 96.08, "Revenue": 0.0, "ROAS": 0.0, "PB Reg": 0.0, "Cost/Reg": 0.0, "PB Att": 0.0, "PBI Sales": 0.0, "$/PBI": 0.0, "MDW Sales": 0.0, "$/MDW": 0.0, "CTR": 0.0391}, "Problem Aware": {"Ads": 10, "Spend": 6790.93, "Revenue": 6337.0, "ROAS": 0.9332, "PB Reg": 1.0, "Cost/Reg": 6790.93, "PB Att": 1.0, "PBI Sales": 1.0, "$/PBI": 6790.93, "MDW Sales": 19.0, "$/MDW": 357.4174, "CTR": 0.0257}}, "Video": {"Solution Aware": {"Ads": 33, "Spend": 471.32, "Revenue": 144.0, "ROAS": 0.3055, "PB Reg": 0.0, "Cost/Reg": 0.0, "PB Att": 0.0, "PBI Sales": 0.0, "$/PBI": 0.0, "MDW Sales": 1.0, "$/MDW": 471.32, "CTR": 0.0595}, "Unclassified": {"Ads": 1, "Spend": 6.25, "Revenue": 0.0, "ROAS": 0.0, "PB Reg": 0.0, "Cost/Reg": 0.0, "PB Att": 0.0, "PBI Sales": 0.0, "$/PBI": 0.0, "MDW Sales": 0.0, "$/MDW": 0.0, "CTR": 0.0469}, "Problem Aware": {"Ads": 10, "Spend": 6511.68, "Revenue": 6317.0, "ROAS": 0.9701, "PB Reg": 2.0, "Cost/Reg": 3255.84, "PB Att": 2.0, "PBI Sales": 0.0, "$/PBI": 0.0, "MDW Sales": 29.0, "$/MDW": 224.5407, "CTR": 0.0472}}}, "leadtype": {"All": {"Secret": {"Ads": 17, "Spend": 435.9, "Revenue": 194.0, "ROAS": 0.4451, "PB Reg": 0.0, "Cost/Reg": 0.0, "PB Att": 0.0, "PBI Sales": 0.0, "$/PBI": 0.0, "MDW Sales": 2.0, "$/MDW": 217.95, "CTR": 0.0315}, "Problem-Solution": {"Ads": 15, "Spend": 3741.78, "Revenue": 1757.0, "ROAS": 0.4696, "PB Reg": 0.0, "Cost/Reg": 0.0, "PB Att": 0.0, "PBI Sales": 0.0, "$/PBI": 0.0, "MDW Sales": 9.0, "$/MDW": 415.7533, "CTR": 0.0276}, "Promise": {"Ads": 12, "Spend": 6440.18, "Revenue": 6414.0, "ROAS": 0.9959, "PB Reg": 2.0, "Cost/Reg": 3220.09, "PB Att": 2.0, "PBI Sales": 0.0, "$/PBI": 0.0, "MDW Sales": 30.0, "$/MDW": 214.6727, "CTR": 0.0465}, "Story": {"Ads": 4, "Spend": 434.84, "Revenue": 0.0, "ROAS": 0.0, "PB Reg": 0.0, "Cost/Reg": 0.0, "PB Att": 0.0, "PBI Sales": 0.0, "$/PBI": 0.0, "MDW Sales": 0.0, "$/MDW": 0.0, "CTR": 0.0252}, "Proclamation": {"Ads": 15, "Spend": 2817.31, "Revenue": 4433.0, "ROAS": 1.5735, "PB Reg": 1.0, "Cost/Reg": 2817.31, "PB Att": 1.0, "PBI Sales": 1.0, "$/PBI": 2817.31, "MDW Sales": 8.0, "$/MDW": 352.1637, "CTR": 0.0316}, "Unclassified": {"Ads": 1, "Spend": 6.25, "Revenue": 0.0, "ROAS": 0.0, "PB Reg": 0.0, "Cost/Reg": 0.0, "PB Att": 0.0, "PBI Sales": 0.0, "$/PBI": 0.0, "MDW Sales": 0.0, "$/MDW": 0.0, "CTR": 0.0469}}, "Static": {"Secret": {"Ads": 6, "Spend": 323.31, "Revenue": 97.0, "ROAS": 0.3, "PB Reg": 0.0, "Cost/Reg": 0.0, "PB Att": 0.0, "PBI Sales": 0.0, "$/PBI": 0.0, "MDW Sales": 1.0, "$/MDW": 323.31, "CTR": 0.0222}, "Problem-Solution": {"Ads": 6, "Spend": 3528.6, "Revenue": 1710.0, "ROAS": 0.4846, "PB Reg": 0.0, "Cost/Reg": 0.0, "PB Att": 0.0, "PBI Sales": 0.0, "$/PBI": 0.0, "MDW Sales": 9.0, "$/MDW": 392.0667, "CTR": 0.0258}, "Promise": {"Ads": 4, "Spend": 200.38, "Revenue": 97.0, "ROAS": 0.4841, "PB Reg": 0.0, "Cost/Reg": 0.0, "PB Att": 0.0, "PBI Sales": 0.0, "$/PBI": 0.0, "MDW Sales": 1.0, "$/MDW": 200.38, "CTR": 0.0251}, "Story": {"Ads": 2, "Spend": 387.39, "Revenue": 0.0, "ROAS": 0.0, "PB Reg": 0.0, "Cost/Reg": 0.0, "PB Att": 0.0, "PBI Sales": 0.0, "$/PBI": 0.0, "MDW Sales": 0.0, "$/MDW": 0.0, "CTR": 0.0238}, "Proclamation": {"Ads": 2, "Spend": 2447.33, "Revenue": 4433.0, "ROAS": 1.8114, "PB Reg": 1.0, "Cost/Reg": 2447.33, "PB Att": 1.0, "PBI Sales": 1.0, "$/PBI": 2447.33, "MDW Sales": 8.0, "$/MDW": 305.9162, "CTR": 0.0272}}, "Video": {"Promise": {"Ads": 8, "Spend": 6239.8, "Revenue": 6317.0, "ROAS": 1.0124, "PB Reg": 2.0, "Cost/Reg": 3119.9, "PB Att": 2.0, "PBI Sales": 0.0, "$/PBI": 0.0, "MDW Sales": 29.0, "$/MDW": 215.1655, "CTR": 0.0475}, "Problem-Solution": {"Ads": 9, "Spend": 213.18, "Revenue": 47.0, "ROAS": 0.2205, "PB Reg": 0.0, "Cost/Reg": 0.0, "PB Att": 0.0, "PBI Sales": 0.0, "$/PBI": 0.0, "MDW Sales": 0.0, "$/MDW": 0.0, "CTR": 0.0536}, "Proclamation": {"Ads": 13, "Spend": 369.98, "Revenue": 0.0, "ROAS": 0.0, "PB Reg": 0.0, "Cost/Reg": 0.0, "PB Att": 0.0, "PBI Sales": 0.0, "$/PBI": 0.0, "MDW Sales": 0.0, "$/MDW": 0.0, "CTR": 0.057}, "Secret": {"Ads": 11, "Spend": 112.59, "Revenue": 97.0, "ROAS": 0.8615, "PB Reg": 0.0, "Cost/Reg": 0.0, "PB Att": 0.0, "PBI Sales": 0.0, "$/PBI": 0.0, "MDW Sales": 1.0, "$/MDW": 112.59, "CTR": 0.0534}, "Unclassified": {"Ads": 1, "Spend": 6.25, "Revenue": 0.0, "ROAS": 0.0, "PB Reg": 0.0, "Cost/Reg": 0.0, "PB Att": 0.0, "PBI Sales": 0.0, "$/PBI": 0.0, "MDW Sales": 0.0, "$/MDW": 0.0, "CTR": 0.0469}, "Story": {"Ads": 2, "Spend": 47.45, "Revenue": 0.0, "ROAS": 0.0, "PB Reg": 0.0, "Cost/Reg": 0.0, "PB Att": 0.0, "PBI Sales": 0.0, "$/PBI": 0.0, "MDW Sales": 0.0, "$/MDW": 0.0, "CTR": 0.0392}}}}, "coverage": {"awareness": {"tagged": 63, "total": 64}, "leadtype": {"tagged": 63, "total": 64}}, "labels": {"awareness": "Awareness Level", "leadtype": "Lead Type"}};
+ var dim='awareness',seg='All';
+ window.awxOpen=function(){document.getElementById('awx-overlay').classList.add('open');awxRender();};
+ window.awxClose=function(){document.getElementById('awx-overlay').classList.remove('open');};
+ window.awxSet=function(kind,val,btn){
+   if(kind==='dim'){dim=val;document.querySelectorAll('[data-d]').forEach(function(b){b.classList.toggle('on',b===btn);});}
+   else{seg=val;document.querySelectorAll('[data-s]').forEach(function(b){b.classList.toggle('on',b===btn);});}
+   awxRender();
+ };
+ function fmt(v,f){
+   if(f==='money')return v?'$'+Math.round(v).toLocaleString():'\u2013';
+   if(f==='int')return Math.round(v).toLocaleString();
+   if(f==='x')return v?v.toFixed(2):'\u2013';
+   if(f==='pct')return (v*100).toFixed(2)+'%';
+   return v;
+ }
+ function cls(v,c){
+   if(c.good===undefined)return '';
+   if(v===0)return 'awx-muted';
+   if(c.higher)return v>=c.good?'awx-tg-green':v>=c.warn?'awx-tg-yellow':'awx-tg-red';
+   return v<=c.good?'awx-tg-green':v<=c.warn?'awx-tg-yellow':'awx-tg-red';
+ }
+ function awxRender(){
+   document.getElementById('awx-title').textContent=P.name+' \u2014 Awareness & Lead Type';
+   document.getElementById('awx-subtitle').textContent=P.labels[dim]+' \u00b7 All-Time \u00b7 '+seg+' ads';
+   document.getElementById('awx-legend').innerHTML=
+     '<span class="awx-dot awx-g"></span>On target<span class="awx-dot awx-y"></span>Within 1.5\u00d7<span class="awx-dot awx-r"></span>Off target &nbsp;&nbsp; Targets: '+P.targets;
+   var cov=P.coverage[dim];var pct=Math.round(100*cov.tagged/Math.max(cov.total,1));
+   var bn=document.getElementById('awx-banner');
+   if(pct>=70){bn.style.display='none';}
+   else{bn.style.display='block';bn.innerHTML='Only <b>'+cov.tagged+' of '+cov.total+'</b> ads ('+pct+'%) carry a '+P.labels[dim].toLowerCase()+' tag via CID \u2014 the rest predate the naming switchover and sit in <b>Unclassified</b>, which holds most of the spend. Read the tagged rows as directional until coverage grows.';}
+   var cols=P.cols,order=P.orders[dim],rows=P.data[dim][seg];
+   var th='<tr><th>'+P.labels[dim]+'</th><th>Ads</th>'+cols.map(function(c){return '<th>'+c.label+'</th>';}).join('')+'</tr>';
+   document.getElementById('awx-thead').innerHTML=th;
+   document.getElementById('awx-tbody').innerHTML=order.map(function(l){
+     var r=rows[l];if(!r||(r.Ads===0))return '';
+     var tds='<td>'+l+'</td><td>'+r.Ads+'</td>'+cols.map(function(c){
+        var v=r[c.label];return '<td class="'+cls(v,c)+'">'+fmt(v,c.fmt)+'</td>';}).join('');
+     return '<tr>'+tds+'</tr>';
+   }).join('');
+   document.getElementById('awx-note').innerHTML='Awareness Level &amp; Lead Type joined from the 2.0 Creative Tracker to the Creative &amp; Copy Tracking Sheet performance tabs on CID. Unclassified = ads with no CID / dimension tag (mostly pre-switchover). All-time figures.';
+ }
+})();
+</script>
+<!-- AWARENESS_OVERLAY_END -->
 </body></html>
