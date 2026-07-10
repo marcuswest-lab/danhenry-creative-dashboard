@@ -22,6 +22,9 @@ h1{font-size:28px;font-weight:700;color:#F8FAFC;text-align:center;margin-bottom:
 .fbtn{padding:6px 14px;border-radius:8px;border:1px solid #334155;background:transparent;color:#94A3B8;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
 .fbtn:hover{color:#CBD5E1;border-color:#475569}
 .fbtn.active{background:#334155;color:#E2E8F0;border-color:#475569}
+.offer-filters{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
+.offer-label{color:#64748B;font-size:11px;margin-left:6px;text-transform:uppercase;letter-spacing:.5px}
+.fbtn.ofr.active{background:#3B82F6;color:#fff;border-color:#3B82F6}
 .tab-bar{display:flex;width:fit-content;background:#151922;border-radius:10px;border:1px solid #1E293B;margin-bottom:16px;overflow:hidden}
 .tab{padding:10px 20px;cursor:pointer;color:#64748B;font-size:13px;font-weight:500;border-right:1px solid #1E293B;transition:all .15s;white-space:nowrap;user-select:none}
 .tab:last-child{border-right:none}
@@ -247,6 +250,7 @@ body.bi-show-insights .row-count{display:none !important}
 <input class="search" id="search" placeholder="Search creatives..." type="text">
 <button class="fbtn" id="btnWinners" onclick="toggleFilter('winners')">Winners (ROAS &ge; 2.0)</button>
 <button class="fbtn" id="btnSpend" onclick="toggleFilter('spend')">Min $500 Spend</button>
+<span class="offer-filters" id="offerFilters"></span>
 </div>
 
 <div class="cf-wrap" id="cf-wrap">
@@ -270,7 +274,32 @@ const KPI={
  hookRate:{green:20,yellow:15},
  holdRate:{green:20,yellow:15}
 };
-let curTab=0,sortCol='cost',sortAsc=false,filters={winners:false,spend:false};
+let curTab=0,sortCol='cost',sortAsc=false,filters={winners:false,spend:false},offerFilter='ALL';
+function adOffer(name){
+ var t=(name||'').trim().split(/[\s\-]+/)[0].toUpperCase();
+ if(t==='MDW')return'MDW';
+ if(t==='PB'||t==='PBI')return'PB';
+ if(t==='5MS'||t==='5M'||t==='5MW')return'5MS';
+ return'OTHER';
+}
+function offersPresent(){
+ var seen={};
+ TABS.forEach(t=>(DATA[t.key]||[]).forEach(r=>{seen[adOffer(r.name)]=1;}));
+ var out=['MDW','PB','5MS'].filter(o=>seen[o]);
+ if(seen['OTHER'])out.push('OTHER');
+ return out;
+}
+function buildOfferBar(){
+ var host=document.getElementById('offerFilters');
+ if(!host)return;
+ var offers=offersPresent();
+ if(offers.length<2){host.innerHTML='';return;}
+ var h='<span class="offer-label">Offer</span>';
+ h+='<button class="fbtn ofr'+(offerFilter==='ALL'?' active':'')+'" onclick="setOffer(\'ALL\')">All</button>';
+ offers.forEach(o=>{h+='<button class="fbtn ofr'+(offerFilter===o?' active':'')+'" onclick="setOffer(\''+o+'\')">'+o+'</button>';});
+ host.innerHTML=h;
+}
+function setOffer(o){offerFilter=o;buildOfferBar();buildTabs();renderTable();}
 function ccBadge(v,metric){
  if(v==null)return'nd';
  const k=KPI[metric];if(!k)return'nd';
@@ -313,7 +342,7 @@ function buildLegend(){
 function buildTabs(){
  let h='';
  TABS.forEach((t,i)=>{
-  const n=(DATA[t.key]||[]).length;
+  const n=(DATA[t.key]||[]).filter(r=>offerFilter==='ALL'||adOffer(r.name)===offerFilter).length;
   h+='<div class="tab'+(i===curTab?' active':'')+'" onclick="switchTab('+i+')">'+t.label+' <span class="cnt">('+n+')</span></div>';
  });
  document.getElementById('tabBar').innerHTML=h;
@@ -367,6 +396,7 @@ function renderTable(){
  const q=document.getElementById('search').value.toLowerCase();
  let filtered=data.filter(r=>{
   if(q&&!r.name.toLowerCase().includes(q))return false;
+  if(offerFilter!=='ALL'&&adOffer(r.name)!==offerFilter)return false;
   if(filters.spend&&(r.cost==null||r.cost<500))return false;
   if(filters.winners&&(r.roas==null||r.roas<2.0))return false;
   return true;
@@ -416,7 +446,7 @@ function switchTab(i){curTab=i;sortCol='cost';sortAsc=false;buildTabs();buildLeg
 function doSort(col){if(sortCol===col)sortAsc=!sortAsc;else{sortCol=col;sortAsc=(col==='name');}renderTable();}
 function toggleFilter(f){filters[f]=!filters[f];document.getElementById(f==='winners'?'btnWinners':'btnSpend').classList.toggle('active');renderTable();}
 document.getElementById('search').addEventListener('input',renderTable);
-buildTabs();buildLegend();renderTable();
+buildTabs();buildLegend();buildOfferBar();renderTable();
 </script>
 <!-- AWARENESS_OVERLAY_BEGIN -->
 <style id="awx-style">
