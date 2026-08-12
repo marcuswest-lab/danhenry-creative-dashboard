@@ -48,8 +48,8 @@ tr.tot td{font-weight:700;background:#10151D;border-top:2px solid #334155;color:
 <div class="tbl-wrap"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
 <div class="legend">
   <div class="legend-item"><span class="dot" style="background:#34D399"></span>Close &ge; 30%</div>
-  <div class="legend-item"><span class="dot" style="background:#FBBF24"></span>Close 15&ndash;29%</div>
-  <div class="legend-item"><span class="dot" style="background:#F87171"></span>Close &lt; 15%</div>
+  <div class="legend-item"><span class="dot" style="background:#FBBF24"></span>Close 20&ndash;29%</div>
+  <div class="legend-item"><span class="dot" style="background:#F87171"></span>Close &lt; 20%</div>
 </div>
 <div class="note" id="note"></div>
 </div>
@@ -67,7 +67,7 @@ function derive(r){var o=Object.assign({},r);
 function money(x){return x?'$'+Math.round(x).toLocaleString():'\u2014';}
 function pctf(x){return x==null?'\u2014':Math.round(x*100)+'%';}
 function closePill(x){if(x==null)return '<span class="gr">\u2014</span>';
- var c=x>=.30?'g':x>=.15?'y':'r';return '<span class="pill '+c+'">'+Math.round(x*100)+'%</span>';}
+ var c=x>=.30?'g':x>=.20?'y':'r';return '<span class="pill '+c+'">'+Math.round(x*100)+'%</span>';}
 var cur=0,sortK=null,sortDir=-1;
 function total(rows){var t={name:'TOTAL',appt:0,rep:0,nomatch:0,show:0,off:0,close:0,cash:0,rev:0};
  rows.forEach(function(r){['appt','rep','nomatch','show','off','close','cash','rev'].forEach(function(k){t[k]+=r[k]||0})});return derive(t);}
