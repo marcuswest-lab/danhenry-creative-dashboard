@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Dan Henry &mdash; Sales Funnel Breakdown</title>
+<title>Dan Henry &mdash; Sales Metric Breakdown</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -39,9 +39,11 @@ tr.tot td{font-weight:700;background:#10151D;border-top:2px solid #334155;color:
 .dot{width:9px;height:9px;border-radius:50%}
 .note{font-size:12px;color:#64748B;margin-top:16px;line-height:1.5;border-top:1px solid #1E293B;padding-top:12px}
 .note b{color:#94A3B8}
+.methodology{font-size:10px;color:#475569;text-align:center;line-height:1.5;max-width:820px;margin:0 auto 18px}
 </style></head><body><div class="wrap">
-<h1>Dan Henry &mdash; Sales Funnel Breakdown</h1>
+<h1>Dan Henry &mdash; Sales Metric Breakdown</h1>
 <div class="subtitle" id="subtitle"></div>
+<div class="methodology">Source of truth = the Booked Calls CSV (paid-ads appts only). Call outcomes are attached programmatically by matching each booked appt to Ben&rsquo;s closer tracker (by name) and Jacques&rsquo; Slack call-outcome reports (by email/name); appts matching neither are flagged &ldquo;No Match.&rdquo; Upcoming appts (after the as-of date) are excluded since they can&rsquo;t have an outcome yet. All figures are aggregates &mdash; no personal data is shown.</div>
 <div class="cards" id="cards"></div>
 <div class="tab-bar" id="tabs"></div>
 <div class="sub" id="dimsub"></div>
